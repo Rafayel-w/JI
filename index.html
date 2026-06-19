@@ -1,0 +1,2877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>群聊 · 衬线简约版 · 自定义样式</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f3f0ea;
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+            transition: background 0.4s ease, font-family 0.4s ease;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 100%;
+            height: 100vh;
+            max-height: 100vh;
+            background-color: #fffef7;
+            border-radius: 0;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background 0.4s ease, border-color 0.4s ease, font-family 0.4s ease;
+        }
+
+        .chat-header {
+            padding: 20px 24px 14px 24px;
+            border-bottom: 1px solid #e9e6df;
+            background: inherit;
+            position: relative;
+            flex-shrink: 0;
+            transition: border-color 0.4s ease;
+        }
+
+        .peer-info {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .peer-name {
+            font-size: 1.55rem;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+            color: #2c2a24;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            border-left: 3px solid #c7b89e;
+            padding-left: 12px;
+            white-space: nowrap;
+            transition: color 0.4s ease, border-color 0.4s ease, font-family 0.4s ease;
+        }
+
+        .header-right-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .status {
+            font-size: 0.7rem;
+            font-family: 'Menlo', 'Courier New', monospace;
+            background: #eef2e6;
+            padding: 4px 8px;
+            border-radius: 40px;
+            color: #5a6b3c;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, background 0.4s ease, color 0.4s ease;
+            user-select: none;
+        }
+
+        .status:hover {
+            background: #e2e8d6;
+            color: #3e4f2a;
+        }
+
+        .settings-toggle-btn,
+        .style-toggle-btn,
+        .member-toggle-btn {
+            background: transparent;
+            border: 0.5px solid #ddd5c8;
+            padding: 5px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-family: 'Georgia', serif;
+            color: #9a8e78;
+            cursor: pointer;
+            transition: all 0.2s, border-color 0.4s ease, color 0.4s ease;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+            user-select: none;
+        }
+
+        .settings-toggle-btn:hover,
+        .style-toggle-btn:hover,
+        .member-toggle-btn:hover {
+            background: #f5f0e7;
+            border-color: #cbbfa8;
+            color: #6d624b;
+        }
+
+        .settings-toggle-btn.active,
+        .style-toggle-btn.active,
+        .member-toggle-btn.active {
+            background: #e8e1d2;
+            border-color: #c7b89e;
+            color: #4e4637;
+        }
+
+        .sub-line {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #9b937e;
+            font-style: italic;
+            padding-left: 16px;
+            transition: color 0.4s ease;
+        }
+
+        /* 三个面板共用基础样式 */
+        .settings-panel,
+        .style-panel,
+        .member-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+            background: #fdfcf6;
+            border-bottom: 0px solid transparent;
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .settings-panel.open,
+        .style-panel.open,
+        .member-panel.open {
+            max-height: 620px;
+            border-bottom: 1px solid #e9e6df;
+            padding: 16px 24px;
+        }
+
+        .style-panel.open {
+            max-height: 1100px; /* 增加高度容纳新滑块 */
+        }
+        .member-panel.open {
+            max-height: 500px;
+        }
+
+        .settings-panel-inner,
+        .style-panel-inner,
+        .member-panel-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .settings-panel-title,
+        .style-panel-title,
+        .member-panel-title {
+            font-size: 0.75rem;
+            font-family: 'Georgia', serif;
+            color: #887e66;
+            letter-spacing: 0.4px;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            transition: color 0.4s ease;
+        }
+
+        .settings-panel-title .count-badge {
+            background: #e8e1d2;
+            color: #5a5340;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-style: normal;
+            letter-spacing: 0.2px;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        .settings-input-row,
+        .style-button-row,
+        .member-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .member-row {
+            padding: 6px 0;
+            border-bottom: 1px dashed #eee9e2;
+            transition: border-color 0.4s ease;
+        }
+        .member-row:last-child {
+            border-bottom: none;
+        }
+        .member-label {
+            font-weight: 600;
+            color: #887e66;
+            min-width: 40px;
+            font-family: 'Georgia', serif;
+            transition: color 0.4s ease;
+        }
+        .member-input {
+            flex: 1;
+            min-width: 80px;
+            background: #ffffff;
+            border: 1px solid #e3dcd0;
+            border-radius: 40px;
+            padding: 6px 14px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.2s, border-color 0.4s ease, background 0.4s ease;
+            color: #2f2b22;
+        }
+        .member-input:focus {
+            border-color: #cdc0aa;
+            box-shadow: 0 0 0 2px rgba(199, 184, 158, 0.2);
+        }
+        .member-btn {
+            background: #eae3d6;
+            border: none;
+            font-family: 'Georgia', serif;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            color: #4e4637;
+            cursor: pointer;
+            transition: all 0.2s, background 0.4s ease, color 0.4s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .member-btn:hover {
+            background: #dfd5c4;
+            color: #302b20;
+        }
+        .member-card-btn {
+            background: #e8dfd0;
+            border: 0.5px solid #ddd0bc;
+        }
+        .member-card-btn:hover {
+            background: #dccfc0;
+        }
+
+        .settings-input {
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid #e3dcd0;
+            border-radius: 40px;
+            padding: 10px 16px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 0.82rem;
+            outline: none;
+            transition: all 0.2s, border-color 0.4s ease, background 0.4s ease;
+            color: #2f2b22;
+        }
+
+        .settings-input:focus {
+            border-color: #cdc0aa;
+            box-shadow: 0 0 0 2px rgba(199, 184, 158, 0.2);
+        }
+
+        .settings-add-btn,
+        .style-apply-btn,
+        .style-reset-btn,
+        .style-example-btn {
+            background: #eae3d6;
+            border: none;
+            font-family: 'Georgia', serif;
+            font-weight: 500;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 0.78rem;
+            color: #4e4637;
+            cursor: pointer;
+            transition: all 0.2s, background 0.4s ease, color 0.4s ease;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .settings-add-btn:hover,
+        .style-apply-btn:hover,
+        .style-reset-btn:hover,
+        .style-example-btn:hover {
+            background: #dfd5c4;
+            color: #302b20;
+        }
+
+        .style-reset-btn {
+            background: #f0ebe2;
+            border: 0.5px solid #ddd0bc;
+        }
+
+        .style-example-btn {
+            background: #e9dfd0;
+        }
+
+        .batch-add-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .batch-label {
+            font-size: 0.68rem;
+            font-family: 'Georgia', serif;
+            color: #9b937e;
+            font-style: italic;
+            transition: color 0.4s ease;
+        }
+
+        .batch-textarea,
+        .css-textarea {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #e3dcd0;
+            border-radius: 18px;
+            padding: 10px 14px;
+            font-family: 'Menlo', 'Courier New', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s, border-color 0.4s ease, background 0.4s ease;
+            color: #2f2b22;
+            line-height: 1.5;
+            min-height: 68px;
+        }
+
+        .css-textarea {
+            min-height: 160px;
+            font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+            background: #fefcf7;
+        }
+
+        .batch-textarea:focus,
+        .css-textarea:focus {
+            border-color: #cdc0aa;
+            box-shadow: 0 0 0 2px rgba(199, 184, 158, 0.2);
+        }
+
+        .batch-hint,
+        .style-hint {
+            font-size: 0.62rem;
+            color: #c5bdaa;
+            font-family: 'Georgia', serif;
+            letter-spacing: 0.2px;
+            line-height: 1.3;
+            transition: color 0.4s ease;
+        }
+
+        .batch-btn-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .replies-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+
+        .replies-tags-container::-webkit-scrollbar {
+            width: 3px;
+        }
+        .replies-tags-container::-webkit-scrollbar-track {
+            background: #f5f2ea;
+            border-radius: 8px;
+        }
+        .replies-tags-container::-webkit-scrollbar-thumb {
+            background: #d6cfbf;
+            border-radius: 8px;
+        }
+
+        .reply-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f5f2ea;
+            border: 0.5px solid #ece6db;
+            padding: 6px 10px 6px 14px;
+            border-radius: 24px;
+            font-size: 0.78rem;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #3d392e;
+            transition: all 0.15s, background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+            max-width: 100%;
+            word-break: break-word;
+        }
+
+        .reply-tag .tag-text {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 260px;
+        }
+
+        .reply-tag .tag-delete {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: none;
+            background: #ddd5c5;
+            color: #6d624b;
+            cursor: pointer;
+            font-size: 0.7rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s, background 0.4s ease, color 0.4s ease;
+            padding: 0;
+        }
+
+        .reply-tag .tag-delete:hover {
+            background: #c9b8a2;
+            color: #fffef9;
+        }
+
+        .no-replies-hint {
+            font-size: 0.7rem;
+            color: #c5bdaa;
+            font-style: italic;
+            font-family: 'Georgia', serif;
+            padding: 4px 0;
+            transition: color 0.4s ease;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 20px 10px 20px;
+            scroll-behavior: smooth;
+            background: #fffef7;
+            min-height: 0;
+            transition: background 0.4s ease, font-family 0.4s ease;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f0ede5;
+            border-radius: 10px;
+            transition: background 0.4s ease;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #d6cfbf;
+            border-radius: 10px;
+            transition: background 0.4s ease;
+        }
+
+        .message-row {
+            display: flex;
+            margin-bottom: 20px;
+            width: 100%;
+            animation: fadeInUp 0.2s ease;
+            position: relative;
+        }
+
+        .message-left {
+            justify-content: flex-start;
+        }
+        .message-right {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 78%;
+            padding: 12px 18px;
+            border-radius: 26px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            word-wrap: break-word;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.02);
+            transition: background 0.3s ease, border-color 0.4s ease, color 0.4s ease, font-family 0.4s ease;
+            position: relative;
+        }
+
+        .bubble-left {
+            background: #f5f2ea;
+            color: #2d2a22;
+            border-bottom-left-radius: 6px;
+            border: 0.5px solid #ece6db;
+        }
+
+        .bubble-right {
+            background: #ffffff;
+            color: #2e2b24;
+            border-bottom-right-radius: 6px;
+            border: 0.5px solid #e0d9cd;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: 0.7rem;
+            letter-spacing: 0.2px;
+            flex-wrap: wrap;
+        }
+
+        .sender-name {
+            font-weight: 600;
+            font-family: 'Georgia', serif;
+            color: #887e66;
+            transition: color 0.4s ease, font-family 0.4s ease;
+        }
+
+        .message-time {
+            font-family: monospace;
+            font-size: 0.65rem;
+            color: #bcb2a0;
+            transition: color 0.4s ease;
+        }
+
+        .quote-btn {
+            flex-shrink: 0;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: #c5bdaa;
+            padding: 1px 4px;
+            border-radius: 8px;
+            transition: all 0.18s, color 0.4s ease;
+            line-height: 1;
+            font-family: 'Georgia', serif;
+            letter-spacing: 0;
+            margin-left: 2px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            min-width: 24px;
+            min-height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quote-btn:hover {
+            color: #7d735a;
+            background: rgba(180, 170, 150, 0.2);
+        }
+
+        .quote-block {
+            background: rgba(220, 215, 200, 0.35);
+            border-left: 2.5px solid #c7b89e;
+            padding: 7px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            color: #6b6352;
+            font-style: italic;
+            line-height: 1.35;
+            word-break: break-word;
+            max-width: 100%;
+            transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+        }
+
+        .quote-block .quote-sender {
+            font-weight: 600;
+            font-style: normal;
+            color: #887e66;
+            font-size: 0.7rem;
+            margin-bottom: 2px;
+            letter-spacing: 0.2px;
+            transition: color 0.4s ease;
+        }
+
+        .message-text {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            word-break: break-word;
+            white-space: pre-wrap;
+            transition: color 0.4s ease, font-family 0.4s ease;
+        }
+
+        .load-more-bar {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+        }
+        .load-more-btn {
+            background: #eae3d6;
+            border: none;
+            font-family: 'Georgia', serif;
+            font-size: 0.75rem;
+            padding: 6px 18px;
+            border-radius: 60px;
+            color: #5a5340;
+            cursor: pointer;
+            transition: all 0.2s, background 0.4s ease, color 0.4s ease;
+            letter-spacing: 0.3px;
+        }
+        .load-more-btn:hover {
+            background: #dfd5c4;
+            color: #302b20;
+        }
+        .msg-count-tip {
+            font-size: 0.65rem;
+            color: #bcb2a0;
+            margin-left: 12px;
+            transition: color 0.4s ease;
+        }
+
+        .quote-preview-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #faf8f2;
+            border: 1px solid #e8e2d4;
+            border-radius: 16px;
+            padding: 10px 16px;
+            margin-bottom: 0;
+            animation: fadeInUp 0.2s ease;
+            transition: all 0.25s, background 0.4s ease, border-color 0.4s ease;
+            flex-shrink: 0;
+        }
+
+        .quote-preview-bar.hidden {
+            display: none;
+        }
+
+        .quote-preview-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .quote-preview-sender {
+            font-size: 0.65rem;
+            font-family: 'Georgia', serif;
+            color: #887e66;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: color 0.4s ease;
+        }
+
+        .quote-preview-text {
+            font-size: 0.72rem;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #8a8270;
+            font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            transition: color 0.4s ease;
+        }
+
+        .quote-preview-close {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: none;
+            background: #e8e1d2;
+            color: #6d624b;
+            cursor: pointer;
+            font-size: 0.8rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.18s, background 0.4s ease, color 0.4s ease;
+            padding: 0;
+        }
+
+        .chat-input-area {
+            background: #fffdf8;
+            border-top: 1px solid #eee9e2;
+            padding: 14px 20px 22px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid #e3dcd0;
+            border-radius: 48px;
+            padding: 12px 20px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            transition: all 0.2s, border-color 0.4s ease, background 0.4s ease, font-family 0.4s ease;
+            color: #2f2b22;
+            line-height: 1.4;
+        }
+
+        .message-input:focus {
+            border-color: #cdc0aa;
+            box-shadow: 0 0 0 2px rgba(199, 184, 158, 0.2);
+        }
+
+        .send-btn {
+            background: #eae3d6;
+            border: none;
+            font-family: 'Georgia', serif;
+            font-weight: 500;
+            padding: 12px 22px;
+            border-radius: 48px;
+            font-size: 0.85rem;
+            color: #4e4637;
+            cursor: pointer;
+            transition: all 0.2s, background 0.4s ease, color 0.4s ease;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: #dfd5c4;
+            color: #302b20;
+        }
+
+        /* ===== 色彩主题选择器样式 ===== */
+        .theme-selector {
+            margin: 2px 0 4px 0;
+            padding: 8px 0 6px 0;
+            border-top: 1px solid #eee9e2;
+            border-bottom: 1px solid #eee9e2;
+            transition: border-color 0.4s ease;
+        }
+
+        .theme-selector-label {
+            font-size: 0.7rem;
+            font-family: 'Georgia', serif;
+            color: #887e66;
+            letter-spacing: 0.4px;
+            font-style: italic;
+            margin-bottom: 10px;
+            transition: color 0.4s ease;
+        }
+
+        .theme-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .theme-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+            min-width: 48px;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-btn:hover .theme-dot {
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .theme-btn:active .theme-dot {
+            transform: scale(0.94);
+        }
+
+        .theme-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2.5px solid #e8e1d2;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.4s ease;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .theme-btn.active .theme-dot {
+            border-color: #b8a48a;
+            box-shadow: 0 0 0 3px rgba(199, 184, 158, 0.25), 0 4px 14px rgba(0, 0, 0, 0.06);
+            transform: scale(1.04);
+        }
+
+        .theme-name {
+            font-size: 0.6rem;
+            font-family: 'Georgia', serif;
+            color: #9b937e;
+            letter-spacing: 0.3px;
+            transition: color 0.3s ease, color 0.4s ease;
+            white-space: nowrap;
+        }
+
+        .theme-btn.active .theme-name {
+            color: #5a5340;
+            font-weight: 500;
+        }
+
+        .theme-btn:hover .theme-name {
+            color: #6d624b;
+        }
+
+        /* ===== 自定义字体区域样式 ===== */
+        .font-customizer {
+            margin: 2px 0 6px 0;
+            padding: 8px 0 6px 0;
+            border-top: 1px solid #eee9e2;
+            border-bottom: 1px solid #eee9e2;
+            transition: border-color 0.4s ease;
+        }
+
+        .font-customizer-title {
+            font-size: 0.7rem;
+            font-family: 'Georgia', serif;
+            color: #887e66;
+            letter-spacing: 0.4px;
+            font-style: italic;
+            margin-bottom: 10px;
+            transition: color 0.4s ease;
+        }
+
+        .font-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .font-input-row .settings-input {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 14px;
+            font-size: 0.78rem;
+        }
+
+        .font-input-row .style-apply-btn,
+        .font-input-row .style-reset-btn {
+            padding: 8px 14px;
+            font-size: 0.7rem;
+        }
+
+        .font-file-input {
+            display: none;
+        }
+
+        .font-status {
+            font-size: 0.68rem;
+            color: #9b937e;
+            font-style: italic;
+            padding: 4px 0;
+            transition: color 0.4s ease;
+            min-height: 1.6em;
+        }
+
+        .font-status.loaded {
+            color: #7d8a5e;
+        }
+        .font-status.error {
+            color: #c48a7a;
+        }
+
+        .font-preview {
+            font-size: 1.1rem;
+            padding: 8px 0 4px 0;
+            color: #887e66;
+            border-top: 1px dashed #eee9e2;
+            margin-top: 4px;
+            transition: font-family 0.3s ease, color 0.4s ease, border-color 0.4s ease;
+            font-style: italic;
+            letter-spacing: 0.3px;
+            line-height: 1.5;
+        }
+
+        .font-preview .preview-label {
+            font-size: 0.6rem;
+            color: #c5bdaa;
+            font-style: normal;
+            margin-right: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .font-file-btn {
+            background: #eae3d6;
+            border: none;
+            font-family: 'Georgia', serif;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            color: #4e4637;
+            cursor: pointer;
+            transition: all 0.2s, background 0.4s ease, color 0.4s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .font-file-btn:hover {
+            background: #dfd5c4;
+            color: #302b20;
+        }
+
+        /* ===== 新增：自动回复速度控制 ===== */
+        .speed-control {
+            margin: 2px 0 6px 0;
+            padding: 8px 0 6px 0;
+            border-top: 1px solid #eee9e2;
+            border-bottom: 1px solid #eee9e2;
+            transition: border-color 0.4s ease;
+        }
+
+        .speed-title {
+            font-size: 0.7rem;
+            font-family: 'Georgia', serif;
+            color: #887e66;
+            letter-spacing: 0.4px;
+            font-style: italic;
+            margin-bottom: 10px;
+            transition: color 0.4s ease;
+        }
+
+        .speed-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+
+        .speed-row label {
+            font-size: 0.7rem;
+            font-family: 'Georgia', serif;
+            color: #887e66;
+            min-width: 100px;
+            transition: color 0.4s ease;
+        }
+
+        .speed-row input[type="range"] {
+            flex: 1;
+            min-width: 80px;
+            accent-color: #c7b89e;
+            background: transparent;
+            cursor: pointer;
+            height: 4px;
+            border-radius: 4px;
+        }
+
+        .speed-row span {
+            font-size: 0.7rem;
+            font-family: 'Georgia', serif;
+            color: #887e66;
+            min-width: 30px;
+            text-align: right;
+            transition: color 0.4s ease;
+        }
+
+        /* 小屏适配 */
+        @media (max-width: 560px) {
+            .chat-container {
+                max-height: 100vh;
+                border-radius: 0;
+                height: 100vh;
+            }
+            .message-bubble {
+                max-width: 85%;
+                padding: 10px 14px;
+                font-size: 0.88rem;
+            }
+            .peer-name {
+                font-size: 1.3rem;
+            }
+            .input-wrapper {
+                gap: 8px;
+            }
+            .send-btn {
+                padding: 10px 18px;
+            }
+            .chat-messages {
+                padding: 16px 14px 8px 14px;
+            }
+            .chat-header {
+                padding: 14px 14px 10px 14px;
+            }
+            .settings-panel.open,
+            .style-panel.open,
+            .member-panel.open {
+                padding: 12px 14px;
+                max-height: 580px;
+            }
+            .style-panel.open {
+                max-height: 1000px;
+            }
+            .member-panel.open {
+                max-height: 460px;
+            }
+            .header-right-group {
+                gap: 6px;
+            }
+            .settings-toggle-btn,
+            .style-toggle-btn,
+            .member-toggle-btn {
+                font-size: 0.65rem;
+                padding: 4px 10px;
+            }
+            .status {
+                font-size: 0.62rem;
+                padding: 3px 6px;
+            }
+            .css-textarea {
+                min-height: 140px;
+            }
+            .style-button-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .reply-tag .tag-text {
+                max-width: 160px;
+            }
+            .theme-dot {
+                width: 34px;
+                height: 34px;
+            }
+            .theme-options {
+                gap: 8px;
+            }
+            .theme-btn {
+                min-width: 38px;
+                padding: 2px 4px;
+            }
+            .theme-name {
+                font-size: 0.55rem;
+            }
+            .member-row {
+                flex-wrap: wrap;
+            }
+            .member-label {
+                min-width: 30px;
+            }
+            .member-input {
+                min-width: 60px;
+                flex: 1 1 100%;
+            }
+            .member-btn {
+                padding: 4px 10px;
+                font-size: 0.65rem;
+            }
+            .font-input-row .settings-input {
+                min-width: 70px;
+                font-size: 0.7rem;
+                padding: 6px 10px;
+            }
+            .font-input-row .style-apply-btn,
+            .font-input-row .style-reset-btn,
+            .font-file-btn {
+                padding: 6px 10px;
+                font-size: 0.62rem;
+            }
+            .font-preview {
+                font-size: 0.95rem;
+            }
+            .speed-row label {
+                min-width: 70px;
+                font-size: 0.65rem;
+            }
+            .speed-row input[type="range"] {
+                min-width: 60px;
+            }
+            .speed-row span {
+                font-size: 0.65rem;
+                min-width: 24px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .theme-dot {
+                width: 28px;
+                height: 28px;
+            }
+            .theme-options {
+                gap: 4px;
+            }
+            .theme-btn {
+                min-width: 32px;
+                padding: 2px 2px;
+            }
+            .theme-name {
+                font-size: 0.5rem;
+            }
+            .font-input-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .font-input-row .settings-input {
+                min-width: unset;
+            }
+            .speed-row label {
+                min-width: 60px;
+                font-size: 0.6rem;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="peer-info">
+                <span class="peer-name">Yu&An · 三人不报数</span>
+                <div class="header-right-group">
+                    <span id="statusLabel" class="status">✧ 群聊中</span>
+                    <button id="settingsToggleBtn" class="settings-toggle-btn" title="设置字卡">✦ 字卡</button>
+                    <button id="styleToggleBtn" class="style-toggle-btn" title="自定义气泡样式">✎ 样式</button>
+                    <button id="memberToggleBtn" class="member-toggle-btn" title="群成员管理">👥 成员</button>
+                </div>
+            </div>
+            <div class="sub-line">——聊天记录是三万行情书</div>
+        </div>
+
+        <!-- 字卡面板 -->
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-panel-inner">
+                <div class="settings-panel-title">
+                    预设回复字卡 <span class="count-badge" id="replyCountBadge">0</span>
+                </div>
+                <div class="settings-input-row">
+                    <input type="text" id="customReplyInput" class="settings-input" placeholder="添加自动回复短语…" autocomplete="off">
+                    <button id="addReplyBtn" class="settings-add-btn">＋ 添加</button>
+                </div>
+                <div class="batch-add-area">
+                    <span class="batch-label">批量导入（换行 / 逗号 / 分号 分隔）</span>
+                    <textarea id="batchReplyTextarea" class="batch-textarea" placeholder="粘贴多条短语…&#10;每行一条，或用逗号、分号分隔" rows="3"></textarea>
+                    <div class="batch-btn-row">
+                        <span class="batch-feedback" id="batchFeedback"></span>
+                        <button id="batchImportBtn" class="batch-import-btn">批量导入</button>
+                    </div>
+                    <span class="batch-hint">支持换行、逗号、中文逗号、分号作为分隔，自动去重</span>
+                </div>
+                <div class="replies-tags-container" id="repliesTagsContainer">
+                    <span class="no-replies-hint" id="noRepliesHint">尚未添加自定义回复，将使用默认短语</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 自定义样式面板 + 主题选择 + 字体自定义 + 回复速度 -->
+        <div class="style-panel" id="stylePanel">
+            <div class="style-panel-inner">
+                <div class="style-panel-title">
+                    ✧ 自定义聊天气泡样式 (CSS) ✧
+                </div>
+                <div class="theme-selector">
+                    <div class="theme-selector-label">🎨 色彩主题 · 莫兰迪</div>
+                    <div class="theme-options" id="themeOptions"></div>
+                </div>
+
+                <!-- ===== 新增：自动回复速度控制 ===== -->
+                <div class="speed-control" id="speedControl">
+                    <div class="speed-title">⏱️ 自动回复速度</div>
+                    <div class="speed-row">
+                        <label for="firstDelaySlider">首次延迟</label>
+                        <input type="range" id="firstDelaySlider" min="1" max="30" value="6" step="0.5">
+                        <span id="firstDelayLabel">6</span><span style="font-size:0.6rem; color:#9b937e; min-width:20px;">秒</span>
+                    </div>
+                    <div class="speed-row">
+                        <label for="intervalDelaySlider">后续间隔</label>
+                        <input type="range" id="intervalDelaySlider" min="1" max="30" value="5" step="0.5">
+                        <span id="intervalDelayLabel">5</span><span style="font-size:0.6rem; color:#9b937e; min-width:20px;">秒</span>
+                    </div>
+                    <div class="speed-row">
+                        <label for="replyCountSlider">回复条数</label>
+                        <input type="range" id="replyCountSlider" min="1" max="5" value="3" step="1">
+                        <span id="replyCountLabel">3</span><span style="font-size:0.6rem; color:#9b937e; min-width:20px;">条</span>
+                    </div>
+                </div>
+
+                <!-- ===== 自定义字体区域 ===== -->
+                <div class="font-customizer" id="fontCustomizer">
+                    <div class="font-customizer-title">🔤 自定义字体</div>
+                    <div class="font-input-row">
+                        <input type="text" id="fontNameInput" class="settings-input" placeholder="字体名称（如：MyFont）" autocomplete="off">
+                        <input type="file" id="fontFileInput" class="font-file-input" accept=".ttf,.otf,.woff,.woff2">
+                        <button id="fontFileBtn" class="font-file-btn">📁 选择文件</button>
+                        <button id="uploadFontBtn" class="style-apply-btn">⬆ 上传</button>
+                    </div>
+                    <div class="font-input-row">
+                        <input type="text" id="fontUrlInput" class="settings-input" placeholder="Google Fonts 链接 或 @import url(...)" autocomplete="off">
+                        <button id="applyFontUrlBtn" class="style-apply-btn">加载链接</button>
+                        <button id="clearFontBtn" class="style-reset-btn">✕ 清除</button>
+                    </div>
+                    <div class="font-status" id="fontStatus">💡 上传 TTF/OTF/WOFF 文件，或输入字体链接</div>
+                    <div class="font-preview" id="fontPreview">
+                        <span class="preview-label">预览 ·</span>
+                        秋风起，思念长，一行一句皆成章。
+                    </div>
+                </div>
+
+                <textarea id="customCssInput" class="css-textarea" placeholder="/* 在这里输入自定义CSS，覆盖气泡样式 */&#10;&#10;/* 示例：改变左侧气泡背景和右侧气泡圆角 */&#10;.bubble-left { background: #f1ebe0; border-radius: 24px 24px 24px 8px; }&#10;.bubble-right { background: #dbd0bd; color: #2f2a1f; border-radius: 24px 8px 24px 24px; }&#10;.quote-block { border-left-color: #a88f6e; background: #f5efdf; }&#10;.message-text { font-family: 'Georgia', serif; letter-spacing: 0.01em; }"></textarea>
+                <div class="style-button-row">
+                    <button id="applyCssBtn" class="style-apply-btn">✦ 应用样式</button>
+                    <button id="resetCssBtn" class="style-reset-btn">⟳ 重置默认</button>
+                    <button id="exampleCssBtn" class="style-example-btn">📋 温馨示例</button>
+                </div>
+                <span class="style-hint">💡 提示：可针对 .bubble-left / .bubble-right / .message-bubble / .quote-block / .sender-name 等类自定义。刷新后样式自动保存。</span>
+            </div>
+        </div>
+
+        <!-- ===== 群成员管理面板 ===== -->
+        <div class="member-panel" id="memberPanel">
+            <div class="member-panel-inner">
+                <div class="member-panel-title">👥 群成员管理 · 修改名称 / 发送字卡</div>
+                <div id="memberListContainer">
+                    <!-- 由 JS 动态渲染 -->
+                </div>
+                <span class="style-hint" style="margin-top:4px;">💡 修改名称后新消息将使用新名字。点击"发字卡"让该成员从当前字卡列表中随机选一条发送。</span>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <div class="chat-input-area">
+            <div class="quote-preview-bar hidden" id="quotePreviewBar">
+                <div class="quote-preview-content">
+                    <span class="quote-preview-sender" id="quotePreviewSender"></span>
+                    <span class="quote-preview-text" id="quotePreviewText"></span>
+                </div>
+                <button class="quote-preview-close" id="quotePreviewClose" title="取消引用">×</button>
+            </div>
+            <div class="input-wrapper">
+                <input type="text" id="messageInput" class="message-input" placeholder="书写你的消息… 按 Enter 发送" autocomplete="off">
+                <button id="sendButton" class="send-btn">寄出</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 核心功能 + 自定义CSS持久化 ==========
+        let myName = '我';
+        let groupPeers = ['小鱼', '小柏'];
+        const PEER_NAME_FALLBACK = () => groupPeers[0] || '小柏';
+        const MAX_MESSAGES = 50000;
+        const PAGE_SIZE = 240;
+
+        const DEFAULT_REPLIES = [
+            "嗯，继续说吧。", "有道理。", "然后发生了什么？", "我也想听听你的看法。",
+            "这让我想起了什么…", "今晚月色真好，你那边能看到星星吗？", "最近在读一本诗集，想分享给你。",
+            "你这段话让我想到下午三点的阳光。", "哈哈，有意思。", "我也遇到过类似的事。",
+            "说下去，我在听。", "刚才那句让我愣了一下。"
+        ];
+
+        const STORAGE_REPLIES_KEY = 'chat_app_custom_replies';
+        const STORAGE_MESSAGES_KEY = 'chat_app_messages';
+        const STORAGE_CUSTOM_CSS_KEY = 'chat_app_custom_css';
+        const STORAGE_THEME_KEY = 'chat_app_theme';
+        const STORAGE_MEMBER_NAMES_KEY = 'chat_app_member_names';
+        const STORAGE_SPEED_KEY = 'chat_app_speed_settings';
+
+        // ===== 新增：字体存储键 =====
+        const STORAGE_FONT_KEY = 'chat_app_custom_font';
+
+        let customReplies = [];
+        let messages = [];
+        let currentQuote = null;
+        let pendingAutoReplies = [];
+        let timeRefreshIntervalId = null;
+        let isSettingsOpen = false;
+        let isStyleOpen = false;
+        let isMemberOpen = false;
+        let renderStartIndex = 0;
+
+        // DOM 元素
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const settingsToggleBtn = document.getElementById('settingsToggleBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const styleToggleBtn = document.getElementById('styleToggleBtn');
+        const stylePanel = document.getElementById('stylePanel');
+        const memberToggleBtn = document.getElementById('memberToggleBtn');
+        const memberPanel = document.getElementById('memberPanel');
+        const memberListContainer = document.getElementById('memberListContainer');
+        const customCssInput = document.getElementById('customCssInput');
+        const applyCssBtn = document.getElementById('applyCssBtn');
+        const resetCssBtn = document.getElementById('resetCssBtn');
+        const exampleCssBtn = document.getElementById('exampleCssBtn');
+        const customReplyInput = document.getElementById('customReplyInput');
+        const addReplyBtn = document.getElementById('addReplyBtn');
+        const repliesTagsContainer = document.getElementById('repliesTagsContainer');
+        const replyCountBadge = document.getElementById('replyCountBadge');
+        const batchReplyTextarea = document.getElementById('batchReplyTextarea');
+        const batchImportBtn = document.getElementById('batchImportBtn');
+        const batchFeedback = document.getElementById('batchFeedback');
+        const quotePreviewBar = document.getElementById('quotePreviewBar');
+        const quotePreviewSender = document.getElementById('quotePreviewSender');
+        const quotePreviewText = document.getElementById('quotePreviewText');
+        const quotePreviewClose = document.getElementById('quotePreviewClose');
+        const statusLabel = document.getElementById('statusLabel');
+        const themeOptions = document.getElementById('themeOptions');
+
+        // ===== 新增：速度控制 DOM =====
+        const firstDelaySlider = document.getElementById('firstDelaySlider');
+        const intervalDelaySlider = document.getElementById('intervalDelaySlider');
+        const replyCountSlider = document.getElementById('replyCountSlider');
+        const firstDelayLabel = document.getElementById('firstDelayLabel');
+        const intervalDelayLabel = document.getElementById('intervalDelayLabel');
+        const replyCountLabel = document.getElementById('replyCountLabel');
+
+        // ===== 新增：字体相关 DOM =====
+        const fontNameInput = document.getElementById('fontNameInput');
+        const fontFileInput = document.getElementById('fontFileInput');
+        const fontFileBtn = document.getElementById('fontFileBtn');
+        const uploadFontBtn = document.getElementById('uploadFontBtn');
+        const fontUrlInput = document.getElementById('fontUrlInput');
+        const applyFontUrlBtn = document.getElementById('applyFontUrlBtn');
+        const clearFontBtn = document.getElementById('clearFontBtn');
+        const fontStatus = document.getElementById('fontStatus');
+        const fontPreview = document.getElementById('fontPreview');
+
+        // ===== 速度控制存储 =====
+        function loadSpeedSettings() {
+            try {
+                const stored = localStorage.getItem(STORAGE_SPEED_KEY);
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    if (data.firstDelay !== undefined) firstDelaySlider.value = data.firstDelay;
+                    if (data.intervalDelay !== undefined) intervalDelaySlider.value = data.intervalDelay;
+                    if (data.replyCount !== undefined) replyCountSlider.value = data.replyCount;
+                    updateSpeedLabels();
+                }
+            } catch (e) {}
+        }
+
+        function saveSpeedSettings() {
+            try {
+                localStorage.setItem(STORAGE_SPEED_KEY, JSON.stringify({
+                    firstDelay: parseFloat(firstDelaySlider.value),
+                    intervalDelay: parseFloat(intervalDelaySlider.value),
+                    replyCount: parseInt(replyCountSlider.value, 10)
+                }));
+            } catch (e) {}
+        }
+
+        function updateSpeedLabels() {
+            firstDelayLabel.textContent = firstDelaySlider.value;
+            intervalDelayLabel.textContent = intervalDelaySlider.value;
+            replyCountLabel.textContent = replyCountSlider.value;
+        }
+
+        function bindSpeedEvents() {
+            firstDelaySlider.addEventListener('input', () => {
+                updateSpeedLabels();
+                saveSpeedSettings();
+            });
+            intervalDelaySlider.addEventListener('input', () => {
+                updateSpeedLabels();
+                saveSpeedSettings();
+            });
+            replyCountSlider.addEventListener('input', () => {
+                updateSpeedLabels();
+                saveSpeedSettings();
+            });
+        }
+
+        // ===== 新增：字体状态管理 =====
+        let currentFontConfig = null; // { type: 'file'|'url', name: string, data: string (base64 or url), family: string }
+        let loadedFontFamily = null;
+
+        const MAX_FONT_SIZE_BYTES = 30 * 1024 * 1024; // 30MB
+
+        function getFontStatusEl() { return fontStatus; }
+
+        function setFontStatus(msg, type) {
+            if (!fontStatus) return;
+            fontStatus.textContent = msg;
+            fontStatus.className = 'font-status';
+            if (type === 'loaded') fontStatus.classList.add('loaded');
+            else if (type === 'error') fontStatus.classList.add('error');
+        }
+
+        function updateFontPreview(family) {
+            if (!fontPreview) return;
+            if (family && family !== '') {
+                fontPreview.style.fontFamily = family + ', Georgia, "Times New Roman", serif';
+            } else {
+                fontPreview.style.fontFamily = '';
+            }
+        }
+
+        function applyFontToGlobal(family) {
+            if (!family || family === '') {
+                // 恢复默认
+                document.body.style.fontFamily = '';
+                document.querySelector('.chat-container').style.fontFamily = '';
+                document.querySelectorAll('.message-text').forEach(el => el.style.fontFamily = '');
+                document.querySelectorAll('.sender-name').forEach(el => el.style.fontFamily = '');
+                document.querySelectorAll('.peer-name').forEach(el => el.style.fontFamily = '');
+                document.querySelectorAll('.message-input').forEach(el => el.style.fontFamily = '');
+                loadedFontFamily = null;
+                updateFontPreview(null);
+                return;
+            }
+            // 应用字体到全局
+            const fontStack = family + ', Georgia, "Times New Roman", serif';
+            document.body.style.fontFamily = fontStack;
+            document.querySelector('.chat-container').style.fontFamily = fontStack;
+            document.querySelectorAll('.message-text').forEach(el => el.style.fontFamily = fontStack);
+            document.querySelectorAll('.sender-name').forEach(el => el.style.fontFamily = fontStack);
+            document.querySelectorAll('.peer-name').forEach(el => el.style.fontFamily = fontStack);
+            document.querySelectorAll('.message-input').forEach(el => el.style.fontFamily = fontStack);
+            loadedFontFamily = family;
+            updateFontPreview(family);
+        }
+
+        // ===== 字体加载核心 =====
+
+        // 使用 FontFace API 加载字体文件 (ArrayBuffer)
+        async function loadFontFromFile(name, arrayBuffer) {
+            try {
+                // 检测字体格式
+                const bytes = new Uint8Array(arrayBuffer.slice(0, 4));
+                let format = 'truetype';
+                // 根据魔数判断格式
+                if (bytes[0] === 0x4F && bytes[1] === 0x54 && bytes[2] === 0x54 && bytes[3] === 0x4F) {
+                    format = 'opentype'; // OTF
+                } else if (bytes[0] === 0x77 && bytes[1] === 0x4F && bytes[2] === 0x46 && bytes[3] === 0x32) {
+                    format = 'woff2';
+                } else if (bytes[0] === 0x77 && bytes[1] === 0x4F && bytes[2] === 0x46 && bytes[3] === 0x46) {
+                    format = 'woff';
+                }
+                // TTF 是 'truetype'
+                const blob = new Blob([arrayBuffer], { type: 'font/' + format });
+                const url = URL.createObjectURL(blob);
+                const font = new FontFace(name, 'url(' + url + ')', { style: 'normal', weight: '400' });
+                const loaded = await font.load();
+                document.fonts.add(loaded);
+                // 清理 blob URL
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+                return { success: true, family: name, font: loaded };
+            } catch (err) {
+                console.error('FontFace 加载失败:', err);
+                return { success: false, error: err.message };
+            }
+        }
+
+        // 加载 Google Fonts 链接
+        function loadFontFromUrl(url) {
+            return new Promise((resolve, reject) => {
+                try {
+                    // 检测是否为 Google Fonts 链接
+                    if (url.includes('fonts.googleapis.com')) {
+                        const link = document.createElement('link');
+                        link.href = url;
+                        link.rel = 'stylesheet';
+                        link.onload = () => {
+                            // 尝试从URL中提取字体名称
+                            let family = 'CustomFont';
+                            const match = url.match(/family=([^&:]+)/);
+                            if (match && match[1]) {
+                                family = decodeURIComponent(match[1].replace(/\+/g, ' '));
+                            }
+                            resolve({ success: true, family: family, type: 'google' });
+                        };
+                        link.onerror = () => reject(new Error('Google Fonts 加载失败'));
+                        document.head.appendChild(link);
+                    } else if (url.trim().startsWith('@import')) {
+                        // CSS @import
+                        const style = document.createElement('style');
+                        style.textContent = url;
+                        style.onload = () => {
+                            // 尝试提取字体名称
+                            let family = 'CustomFont';
+                            const match = url.match(/family=([^&:]+)/);
+                            if (match && match[1]) {
+                                family = decodeURIComponent(match[1].replace(/\+/g, ' '));
+                            }
+                            resolve({ success: true, family: family, type: 'import' });
+                        };
+                        style.onerror = () => reject(new Error('CSS @import 加载失败'));
+                        document.head.appendChild(style);
+                    } else {
+                        // 尝试作为直接字体文件 URL 加载
+                        const name = fontNameInput.value.trim() || 'CustomFont';
+                        const font = new FontFace(name, 'url(' + url + ')', { style: 'normal', weight: '400' });
+                        font.load().then((loaded) => {
+                            document.fonts.add(loaded);
+                            resolve({ success: true, family: name, type: 'url' });
+                        }).catch((err) => {
+                            reject(new Error('字体文件加载失败: ' + err.message));
+                        });
+                    }
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        // ===== 存储字体配置 =====
+        function saveFontConfig(config) {
+            try {
+                if (config) {
+                    localStorage.setItem(STORAGE_FONT_KEY, JSON.stringify(config));
+                } else {
+                    localStorage.removeItem(STORAGE_FONT_KEY);
+                }
+            } catch (e) {
+                console.warn('保存字体配置失败:', e);
+            }
+        }
+
+        function loadFontConfig() {
+            try {
+                const stored = localStorage.getItem(STORAGE_FONT_KEY);
+                if (stored) {
+                    const config = JSON.parse(stored);
+                    if (config && config.type && config.family) {
+                        return config;
+                    }
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        // ===== 应用已保存的字体 =====
+        async function restoreFontFromStorage() {
+            const config = loadFontConfig();
+            if (!config) return false;
+
+            try {
+                if (config.type === 'file' && config.data) {
+                    // 从 base64 恢复
+                    const binaryString = atob(config.data);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    const result = await loadFontFromFile(config.family, bytes.buffer);
+                    if (result.success) {
+                        applyFontToGlobal(config.family);
+                        setFontStatus('✓ 已恢复字体: ' + config.family, 'loaded');
+                        currentFontConfig = config;
+                        return true;
+                    } else {
+                        setFontStatus('⚠ 字体恢复失败，请重新上传', 'error');
+                        return false;
+                    }
+                } else if (config.type === 'url' && config.data) {
+                    const result = await loadFontFromUrl(config.data);
+                    if (result.success) {
+                        const family = result.family || config.family;
+                        applyFontToGlobal(family);
+                        setFontStatus('✓ 已加载字体链接: ' + family, 'loaded');
+                        currentFontConfig = { ...config, family: family };
+                        return true;
+                    } else {
+                        setFontStatus('⚠ 字体链接加载失败，请重新加载', 'error');
+                        return false;
+                    }
+                }
+            } catch (err) {
+                console.warn('恢复字体失败:', err);
+                setFontStatus('⚠ 字体恢复失败: ' + err.message, 'error');
+            }
+            return false;
+        }
+
+        // ===== 清除字体 =====
+        function clearCustomFont() {
+            // 移除所有动态添加的字体（只移除通过 FontFace API 添加的）
+            // 注意：document.fonts 无法直接删除，我们通过重置样式来"取消"应用
+            applyFontToGlobal(null);
+            currentFontConfig = null;
+            localStorage.removeItem(STORAGE_FONT_KEY);
+            setFontStatus('✧ 已清除自定义字体，恢复默认', '');
+            fontNameInput.value = '';
+            fontUrlInput.value = '';
+            fontFileInput.value = '';
+            // 移除可能添加的 link 标签
+            document.querySelectorAll('link[href*="fonts.googleapis.com"]').forEach(el => {
+                if (el && el.parentNode) el.remove();
+            });
+            // 移除可能添加的 @import style
+            document.querySelectorAll('style').forEach(el => {
+                if (el.textContent && el.textContent.includes('@import') && el.textContent.includes('font')) {
+                    if (el.parentNode) el.remove();
+                }
+            });
+            showToast('✧ 已清除自定义字体', true);
+        }
+
+        // ===== 处理字体上传 =====
+        async function handleFontUpload() {
+            const file = fontFileInput.files[0];
+            if (!file) {
+                setFontStatus('⚠ 请先选择字体文件', 'error');
+                return;
+            }
+
+            if (file.size > MAX_FONT_SIZE_BYTES) {
+                setFontStatus('⚠ 文件过大 (' + (file.size / 1024 / 1024).toFixed(1) + 'MB)，请小于 30MB', 'error');
+                return;
+            }
+
+            let name = fontNameInput.value.trim();
+            if (!name) {
+                // 从文件名提取
+                const baseName = file.name.replace(/\.[^.]+$/, '');
+                name = baseName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '');
+                if (!name) name = 'CustomFont';
+                fontNameInput.value = name;
+            }
+
+            setFontStatus('⏳ 正在加载字体…', '');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await loadFontFromFile(name, arrayBuffer);
+
+                if (result.success) {
+                    // 尝试保存到 localStorage (base64)
+                    let saved = false;
+                    try {
+                        // 如果文件小于 5MB，保存为 base64
+                        if (file.size < 5 * 1024 * 1024) {
+                            const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                            const config = {
+                                type: 'file',
+                                family: name,
+                                data: base64,
+                                fileName: file.name,
+                                fileSize: file.size
+                            };
+                            localStorage.setItem(STORAGE_FONT_KEY, JSON.stringify(config));
+                            currentFontConfig = config;
+                            saved = true;
+                        } else {
+                            // 大文件只保存元数据，不保存数据
+                            const config = {
+                                type: 'file',
+                                family: name,
+                                data: null,
+                                fileName: file.name,
+                                fileSize: file.size,
+                                _note: '文件太大，仅内存加载，刷新后需重新上传'
+                            };
+                            localStorage.setItem(STORAGE_FONT_KEY, JSON.stringify(config));
+                            currentFontConfig = config;
+                            saved = true;
+                            setFontStatus('✓ 字体已加载（文件较大，刷新后需重新上传）', 'loaded');
+                        }
+                    } catch (e) {
+                        console.warn('保存字体到 localStorage 失败:', e);
+                        // 仍然应用字体，但无法持久化
+                        currentFontConfig = {
+                            type: 'file',
+                            family: name,
+                            data: null,
+                            fileName: file.name,
+                            fileSize: file.size,
+                            _note: '存储失败，仅内存加载'
+                        };
+                        setFontStatus('✓ 字体已加载（但无法持久化存储）', 'loaded');
+                    }
+
+                    applyFontToGlobal(name);
+                    if (saved && file.size < 5 * 1024 * 1024) {
+                        setFontStatus('✓ 字体 "' + name + '" 已加载并保存', 'loaded');
+                    }
+                    showToast('✧ 字体 "' + name + '" 已加载', true);
+                } else {
+                    setFontStatus('⚠ 字体加载失败: ' + (result.error || '未知错误'), 'error');
+                }
+            } catch (err) {
+                console.error('上传字体失败:', err);
+                setFontStatus('⚠ 上传失败: ' + err.message, 'error');
+            }
+        }
+
+        // ===== 处理字体链接加载 =====
+        async function handleFontUrlLoad() {
+            let url = fontUrlInput.value.trim();
+            if (!url) {
+                setFontStatus('⚠ 请输入字体链接', 'error');
+                return;
+            }
+
+            // 如果用户只输入了 Google Fonts 的 family 参数，自动补全
+            if (!url.includes('http') && !url.includes('@import') && url.includes('family=')) {
+                url = 'https://fonts.googleapis.com/css2?' + url + '&display=swap';
+                fontUrlInput.value = url;
+            }
+
+            // 如果是 Google Fonts 链接但缺少 https://，补全
+            if (url.startsWith('fonts.googleapis.com')) {
+                url = 'https://' + url;
+                fontUrlInput.value = url;
+            }
+
+            let name = fontNameInput.value.trim();
+            if (!name) {
+                // 从链接中提取字体名称
+                const match = url.match(/family=([^&:]+)/);
+                if (match && match[1]) {
+                    name = decodeURIComponent(match[1].replace(/\+/g, ' '));
+                } else {
+                    name = 'CustomFont';
+                }
+                fontNameInput.value = name;
+            }
+
+            setFontStatus('⏳ 正在加载字体链接…', '');
+
+            try {
+                const result = await loadFontFromUrl(url);
+                if (result.success) {
+                    const family = result.family || name;
+                    // 保存配置
+                    const config = {
+                        type: 'url',
+                        family: family,
+                        data: url,
+                        url: url
+                    };
+                    localStorage.setItem(STORAGE_FONT_KEY, JSON.stringify(config));
+                    currentFontConfig = config;
+
+                    applyFontToGlobal(family);
+                    setFontStatus('✓ 字体链接加载成功: ' + family, 'loaded');
+                    showToast('✧ 字体 "' + family + '" 已加载', true);
+                } else {
+                    setFontStatus('⚠ 字体链接加载失败: ' + (result.error || '未知错误'), 'error');
+                }
+            } catch (err) {
+                console.error('加载字体链接失败:', err);
+                setFontStatus('⚠ 加载失败: ' + err.message, 'error');
+            }
+        }
+
+        // ===== 成员名称管理 =====
+        function loadMemberNames() {
+            try {
+                const stored = localStorage.getItem(STORAGE_MEMBER_NAMES_KEY);
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    if (data.myName) myName = data.myName;
+                    if (data.groupPeers && Array.isArray(data.groupPeers) && data.groupPeers.length > 0) {
+                        groupPeers = data.groupPeers;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function saveMemberNames() {
+            try {
+                localStorage.setItem(STORAGE_MEMBER_NAMES_KEY, JSON.stringify({
+                    myName: myName,
+                    groupPeers: groupPeers
+                }));
+            } catch (e) {}
+        }
+
+        function renderMemberList() {
+            if (!memberListContainer) return;
+            let html = '';
+            html += `<div class="member-row">
+                        <span class="member-label">我</span>
+                        <input type="text" class="member-input" id="myNameInput" value="${escapeHtml(myName)}" placeholder="我的名字">
+                        <button class="member-btn" id="updateMyNameBtn">更新</button>
+                    </div>`;
+            groupPeers.forEach((name, idx) => {
+                html += `<div class="member-row" data-index="${idx}">
+                            <span class="member-label">群${idx+1}</span>
+                            <input type="text" class="member-input" id="peerNameInput_${idx}" value="${escapeHtml(name)}" placeholder="成员名称">
+                            <button class="member-btn" data-peer-index="${idx}" id="updatePeerBtn_${idx}">更新</button>
+                            <button class="member-btn member-card-btn" data-peer-index="${idx}" id="cardPeerBtn_${idx}">📇 发字卡</button>
+                        </div>`;
+            });
+            memberListContainer.innerHTML = html;
+
+            document.getElementById('updateMyNameBtn').addEventListener('click', function() {
+                const input = document.getElementById('myNameInput');
+                const newName = input.value.trim();
+                if (newName && newName !== '') {
+                    myName = newName;
+                    saveMemberNames();
+                    showToast('我的名字已更新为：' + myName, true);
+                } else {
+                    showToast('名称不能为空', false);
+                }
+            });
+
+            groupPeers.forEach((_, idx) => {
+                const updateBtn = document.getElementById('updatePeerBtn_' + idx);
+                const cardBtn = document.getElementById('cardPeerBtn_' + idx);
+                const input = document.getElementById('peerNameInput_' + idx);
+
+                updateBtn.addEventListener('click', function() {
+                    const newName = input.value.trim();
+                    if (newName && newName !== '') {
+                        groupPeers[idx] = newName;
+                        saveMemberNames();
+                        renderMemberList();
+                        showToast('成员已更新为：' + newName, true);
+                    } else {
+                        showToast('名称不能为空', false);
+                    }
+                });
+
+                cardBtn.addEventListener('click', function() {
+                    const peerName = groupPeers[idx];
+                    const replies = getAvailableReplies();
+                    if (replies.length === 0) {
+                        showToast('字卡列表为空，请先添加字卡', false);
+                        return;
+                    }
+                    const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                    addMessage(peerName, randomReply, false);
+                    showToast('✨ ' + peerName + ' 发送了一张字卡', true);
+                });
+            });
+        }
+
+        // ===== 自定义样式管理 =====
+        let customStyleElement = null;
+
+        function ensureStyleElement() {
+            if (!customStyleElement) {
+                customStyleElement = document.getElementById('dynamic-user-styles');
+                if (!customStyleElement) {
+                    customStyleElement = document.createElement('style');
+                    customStyleElement.id = 'dynamic-user-styles';
+                    document.head.appendChild(customStyleElement);
+                }
+            }
+            return customStyleElement;
+        }
+
+        function applyCustomCss(cssText) {
+            const styleTag = ensureStyleElement();
+            styleTag.textContent = cssText || '';
+            if (cssText && cssText.trim() !== '') {
+                localStorage.setItem(STORAGE_CUSTOM_CSS_KEY, cssText);
+            } else {
+                localStorage.removeItem(STORAGE_CUSTOM_CSS_KEY);
+            }
+        }
+
+        function loadCustomCssFromStorage() {
+            const savedCss = localStorage.getItem(STORAGE_CUSTOM_CSS_KEY);
+            if (savedCss && savedCss.trim() !== '') {
+                customCssInput.value = savedCss;
+                applyCustomCss(savedCss);
+            } else {
+                customCssInput.value = '';
+                applyCustomCss('');
+            }
+        }
+
+        function resetToDefaultCss() {
+            customCssInput.value = '';
+            applyCustomCss('');
+            showToast('✦ 已恢复默认气泡样式', true);
+        }
+
+        function applyCurrentCssFromEditor() {
+            const css = customCssInput.value;
+            applyCustomCss(css);
+            showToast('✧ 样式已应用 ✧', true);
+        }
+
+        function insertExampleCss() {
+            const example = `/* 温润手账风格示例 */
+        .bubble-left {
+            background: #f9f3e7;
+            border-radius: 20px 20px 20px 8px;
+            border: 1px solid #eadbc4;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .bubble-right {
+            background: #e9e0cf;
+            color: #2e2a1f;
+            border-radius: 20px 8px 20px 20px;
+            border: 1px solid #dbceb4;
+        }
+        .quote-block {
+            background: #fdf4e6;
+            border-left-color: #bfa27b;
+            border-radius: 12px;
+        }
+        .message-meta .sender-name {
+            color: #b28b5e;
+            font-weight: 500;
+        }
+        .message-time {
+            color: #bdaa8c;
+        }
+        .quote-btn {
+            color: #b7a07e;
+        }`;
+            customCssInput.value = example;
+            applyCustomCss(example);
+            showToast('示例样式已加载，可继续微调', true);
+        }
+
+        function showToast(msg, isOk = true) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '30%';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.backgroundColor = '#e9e3d6';
+            toast.style.padding = '8px 20px';
+            toast.style.borderRadius = '60px';
+            toast.style.fontSize = '0.75rem';
+            toast.style.fontFamily = 'Georgia';
+            toast.style.zIndex = '999';
+            toast.style.color = '#5a5340';
+            toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+            toast.style.border = '1px solid #dbd0bc';
+            toast.style.transition = 'background 0.4s ease, color 0.4s ease, border-color 0.4s ease';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1800);
+        }
+
+        // ===== 原有功能 =====
+        function trimMessagesToMaxLimit() {
+            if (messages.length > MAX_MESSAGES) messages = messages.slice(-MAX_MESSAGES);
+        }
+
+        function loadCustomReplies() {
+            try {
+                const stored = localStorage.getItem(STORAGE_REPLIES_KEY);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) customReplies = parsed.filter(item => typeof item === 'string' && item
+                        .trim() !== '');
+                } else customReplies = [];
+            } catch (e) { customReplies = []; }
+        }
+
+        function saveCustomReplies() {
+            try { localStorage.setItem(STORAGE_REPLIES_KEY, JSON.stringify(customReplies)); } catch (e) {}
+        }
+
+        function loadMessages() {
+            try {
+                const stored = localStorage.getItem(STORAGE_MESSAGES_KEY);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        messages = parsed;
+                        trimMessagesToMaxLimit();
+                        return true;
+                    }
+                }
+            } catch (e) { messages = []; }
+            return false;
+        }
+
+        function saveMessages() {
+            try { localStorage.setItem(STORAGE_MESSAGES_KEY, JSON.stringify(messages)); } catch (e) {}
+        }
+
+        function getAvailableReplies() {
+            return customReplies.length > 0 ? customReplies : DEFAULT_REPLIES;
+        }
+
+        function getRandomReply() {
+            const replies = getAvailableReplies();
+            return replies[Math.floor(Math.random() * replies.length)];
+        }
+
+        function getRandomPeer() {
+            return groupPeers.length > 0 ? groupPeers[Math.floor(Math.random() * groupPeers.length)] : '小柏';
+        }
+
+        function showQuotePreview(index, sender, text) {
+            currentQuote = { index, sender, text };
+            quotePreviewSender.textContent = '↩ 引用 ' + (sender || PEER_NAME_FALLBACK());
+            const maxLen = 60;
+            const displayText = text.length > maxLen ? text.substring(0, maxLen) + '…' : text;
+            quotePreviewText.textContent = displayText;
+            quotePreviewBar.classList.remove('hidden');
+            messageInput.focus();
+            scrollToBottom();
+        }
+
+        function hideQuotePreview() {
+            currentQuote = null;
+            quotePreviewBar.classList.add('hidden');
+        }
+
+        function resetRenderOffsetToLatest() {
+            if (messages.length === 0) renderStartIndex = 0;
+            else renderStartIndex = Math.max(0, messages.length - PAGE_SIZE);
+        }
+
+        function loadEarlierMessages() {
+            if (renderStartIndex === 0) return;
+            const newStart = Math.max(0, renderStartIndex - PAGE_SIZE);
+            renderStartIndex = newStart;
+            renderMessages();
+            setTimeout(() => {
+                const loadMoreElem = document.querySelector('.load-more-bar');
+                if (loadMoreElem) loadMoreElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function getCurrentTimeStr() {
+            const now = new Date();
+            return `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        }
+
+        function addMessage(sender, text, isMe, customTime = null, quoteData = null) {
+            if (!text || text.trim() === '') return false;
+            const finalText = text.trim();
+            const timeStr = customTime || getCurrentTimeStr();
+            const msgObj = { sender, text: finalText, isMe, timeStr };
+            if (quoteData) msgObj.quote = { sender: quoteData.sender, text: quoteData.text, index: quoteData.index };
+            messages.push(msgObj);
+            trimMessagesToMaxLimit();
+            saveMessages();
+            resetRenderOffsetToLatest();
+            renderMessages();
+            scrollToBottom();
+            return true;
+        }
+
+        function scrollToBottom() {
+            if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function clearAllChatHistory() {
+            if (!window.confirm("✧ 确认清除全部聊天记录？\n此操作不可撤销，但字卡预设将会保留。")) return;
+            messages = [];
+            saveMessages();
+            pendingAutoReplies.forEach(clearTimeout);
+            pendingAutoReplies = [];
+            hideQuotePreview();
+            currentQuote = null;
+            resetRenderOffsetToLatest();
+            renderMessages();
+            showToast('✦ 聊天记录已清空 ✦');
+        }
+
+        function renderMessages() {
+            if (!messagesContainer) return;
+            if (messages.length === 0) {
+                messagesContainer.innerHTML =
+                    `<div style="text-align: center; padding: 40px 20px; color: #c9c0ae; font-style: italic; font-size: 0.85rem; transition: color 0.4s ease;">✦ 寂静之中，等待第一句独白 ✦</div>`;
+                return;
+            }
+            const total = messages.length,
+                start = renderStartIndex,
+                end = total,
+                visibleMessages = messages.slice(start, end);
+            const liveTimeStr = getCurrentTimeStr();
+            let html = '';
+            if (start > 0) html +=
+                `<div class="load-more-bar"><button class="load-more-btn" id="loadMoreMessagesBtn">⌈ 加载更早的消息 ⌋</button> <span class="msg-count-tip">共 ${total} 条记录</span></div>`;
+            else if (total > PAGE_SIZE) html +=
+                `<div class="load-more-bar"><span class="msg-count-tip" style="font-style:italic;">✨ 已展示所有消息 (共 ${total} 条)</span></div>`;
+            else if (total > 0) html +=
+                `<div class="load-more-bar"><span class="msg-count-tip" style="font-style:italic;">✧ 共 ${total} 条笔录</span></div>`;
+            for (let i = 0; i < visibleMessages.length; i++) {
+                const msg = visibleMessages[i],
+                    globalIdx = start + i;
+                const rowClass = msg.isMe ? 'message-row message-right' : 'message-row message-left';
+                const bubbleClass = msg.isMe ? 'message-bubble bubble-right' : 'message-bubble bubble-left';
+                const senderDisplay = msg.isMe ? myName : msg.sender;
+                let quoteHtml = '';
+                if (msg.quote && msg.quote.text) quoteHtml =
+                    `<div class="quote-block"><div class="quote-sender">引用 ${escapeHtml(msg.quote.sender || PEER_NAME_FALLBACK())}</div><div class="quote-text">${escapeHtml(msg.quote.text)}</div></div>`;
+                html +=
+                    `<div class="${rowClass}" data-msg-index="${globalIdx}"><div class="${bubbleClass}"><div class="message-meta"><span class="sender-name">${escapeHtml(senderDisplay)}</span><span class="message-time">${escapeHtml(liveTimeStr)}</span><button class="quote-btn" data-quote-index="${globalIdx}" title="引用回复">引用</button></div>${quoteHtml}<div class="message-text">${escapeHtml(msg.text)}</div></div></div>`;
+            }
+            messagesContainer.innerHTML = html;
+            document.querySelectorAll('.quote-btn').forEach(btn => {
+                btn.removeEventListener('click', onQuoteButtonClick);
+                btn.addEventListener('click', onQuoteButtonClick);
+            });
+            const loadMoreBtn = document.getElementById('loadMoreMessagesBtn');
+            if (loadMoreBtn) {
+                loadMoreBtn.removeEventListener('click', loadEarlierMessages);
+                loadMoreBtn.addEventListener('click', loadEarlierMessages);
+            }
+            // 重新应用字体（因为DOM重建了）
+            if (loadedFontFamily) {
+                const fontStack = loadedFontFamily + ', Georgia, "Times New Roman", serif';
+                document.querySelectorAll('.message-text').forEach(el => el.style.fontFamily = fontStack);
+                document.querySelectorAll('.sender-name').forEach(el => el.style.fontFamily = fontStack);
+            }
+        }
+
+        function onQuoteButtonClick(e) {
+            e.stopPropagation();
+            const idx = parseInt(this.getAttribute('data-quote-index'), 10);
+            if (!isNaN(idx) && messages[idx]) {
+                const msg = messages[idx];
+                showQuotePreview(idx, msg.isMe ? myName : msg.sender, msg.text);
+            }
+        }
+
+        function sendMyMessage() {
+            const rawText = messageInput.value;
+            if (!rawText || rawText.trim() === '') return;
+            let quoteData = null;
+            if (currentQuote && currentQuote.index >= 0 && currentQuote.index < messages.length) quoteData = {
+                sender: currentQuote.sender,
+                text: currentQuote.text,
+                index: currentQuote.index
+            };
+            if (addMessage(myName, rawText, true, null, quoteData)) {
+                messageInput.value = '';
+                hideQuotePreview();
+                messageInput.focus();
+                scheduleAutoReply();
+            }
+        }
+
+        // ===== 修改后的自动回复调度（支持随机引用任意历史消息）=====
+        function scheduleAutoReply() {
+            // 读取滑块值
+            const firstBase = parseFloat(firstDelaySlider.value) * 1000;
+            const intervalBase = parseFloat(intervalDelaySlider.value) * 1000;
+            const maxReplies = parseInt(replyCountSlider.value, 10);
+
+            // 随机回复条数 (1 ~ maxReplies)
+            const replyCount = Math.floor(Math.random() * maxReplies) + 1;
+            // 首次延迟：基础值 + 0~2 秒随机抖动，更自然
+            let cumulativeDelay = firstBase + Math.random() * 2000;
+
+            for (let i = 0; i < replyCount; i++) {
+                const timerId = setTimeout(() => {
+                    const idx = pendingAutoReplies.indexOf(timerId);
+                    if (idx !== -1) pendingAutoReplies.splice(idx, 1);
+
+                    const peer = getRandomPeer();
+                    const replyText = getRandomReply();
+
+                    // ===== 自动引用：随机选择一条历史消息（不限制发送者）=====
+                    let quoteData = null;
+                    if (messages.length > 0 && Math.random() < 0.3) {
+                        // 从所有消息中随机选一条
+                        const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                        const msgIndex = messages.indexOf(randomMsg);
+                        if (msgIndex !== -1) {
+                            quoteData = {
+                                sender: randomMsg.isMe ? myName : randomMsg.sender,
+                                text: randomMsg.text,
+                                index: msgIndex
+                            };
+                        }
+                    }
+
+                    addMessage(peer, replyText, false, null, quoteData);
+                }, cumulativeDelay);
+                pendingAutoReplies.push(timerId);
+                // 后续间隔：基础值 + 0~2 秒随机抖动
+                cumulativeDelay += intervalBase + Math.random() * 2000;
+            }
+        }
+
+        function initExampleMessages() {
+            const examples = [
+                { sender: "Yu&An", text: "世界破破烂烂", isMe: false, time: "19:28" },
+                { sender: "我", text: "小猫尝尝咸淡", isMe: true, time: "19:30" },
+                { sender: "Yuan", text: "你俩又在说暗号了", isMe: false, time: "19:32" },
+                { sender: "Yu&An", text: "我紧靠you(>_<)", isMe: false, time: "19:36" }
+            ];
+            for (let ex of examples) {
+                messages.push({ sender: ex.sender, text: ex.text, isMe: ex.isMe, timeStr: ex.time });
+            }
+            trimMessagesToMaxLimit();
+            saveMessages();
+            resetRenderOffsetToLatest();
+            renderMessages();
+            scrollToBottom();
+        }
+
+        function renderRepliesTags() {
+            if (!repliesTagsContainer) return;
+            if (customReplies.length === 0) repliesTagsContainer.innerHTML =
+                '<span class="no-replies-hint" id="noRepliesHint">尚未添加自定义回复，将使用默认短语</span>';
+            else {
+                let html = '';
+                for (let i = 0; i < customReplies.length; i++) {
+                    html +=
+                        `<span class="reply-tag" data-index="${i}"><span class="tag-text" title="${escapeHtml(customReplies[i])}">${escapeHtml(customReplies[i])}</span><button class="tag-delete" data-index="${i}" title="删除此条">×</button></span>`;
+                }
+                repliesTagsContainer.innerHTML = html;
+                document.querySelectorAll('.tag-delete').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const idx = parseInt(btn.getAttribute('data-index'), 10);
+                        if (!isNaN(idx) && idx >= 0 && idx < customReplies.length) {
+                            customReplies.splice(idx, 1);
+                            saveCustomReplies();
+                            renderRepliesTags();
+                            updateReplyCountBadge();
+                        }
+                    });
+                });
+            }
+            updateReplyCountBadge();
+        }
+
+        function updateReplyCountBadge() {
+            if (replyCountBadge) replyCountBadge.textContent = customReplies.length;
+        }
+
+        function addCustomReply(text) {
+            if (!text || text.trim() === '') return false;
+            const trimmed = text.trim();
+            if (customReplies.includes(trimmed)) return false;
+            customReplies.push(trimmed);
+            saveCustomReplies();
+            renderRepliesTags();
+            return true;
+        }
+
+        function batchAddCustomReplies(rawText) {
+            if (!rawText || rawText.trim() === '') return { added: 0, skipped: 0 };
+            const segments = rawText.split(/[\n,，;；]+/).map(s => s.trim()).filter(s => s.length > 0);
+            let added = 0,
+                skipped = 0;
+            const seen = new Set(customReplies);
+            for (const seg of segments) {
+                if (seen.has(seg)) skipped++;
+                else { seen.add(seg);
+                    customReplies.push(seg);
+                    added++; }
+            }
+            if (added > 0) { saveCustomReplies();
+                renderRepliesTags(); }
+            return { added, skipped };
+        }
+
+        function showBatchFeedback(text, isGood = true) {
+            if (!batchFeedback) return;
+            batchFeedback.textContent = text;
+            batchFeedback.style.color = isGood ? '#7d8a5e' : '#b8986e';
+            batchFeedback.classList.add('show');
+            clearTimeout(batchFeedback._timeout);
+            batchFeedback._timeout = setTimeout(() => batchFeedback.classList.remove('show'), 2200);
+        }
+
+        // 面板折叠切换
+        function toggleSettingsPanel() {
+            isSettingsOpen = !isSettingsOpen;
+            if (isSettingsOpen) {
+                settingsPanel.classList.add('open');
+                settingsToggleBtn.classList.add('active');
+                settingsToggleBtn.textContent = '✦ 收起';
+            } else {
+                settingsPanel.classList.remove('open');
+                settingsToggleBtn.classList.remove('active');
+                settingsToggleBtn.textContent = '✦ 字卡';
+            }
+        }
+
+        function toggleStylePanel() {
+            isStyleOpen = !isStyleOpen;
+            if (isStyleOpen) {
+                stylePanel.classList.add('open');
+                styleToggleBtn.classList.add('active');
+                styleToggleBtn.textContent = '✎ 收起';
+            } else {
+                stylePanel.classList.remove('open');
+                styleToggleBtn.classList.remove('active');
+                styleToggleBtn.textContent = '✎ 样式';
+            }
+        }
+
+        function toggleMemberPanel() {
+            isMemberOpen = !isMemberOpen;
+            if (isMemberOpen) {
+                memberPanel.classList.add('open');
+                memberToggleBtn.classList.add('active');
+                memberToggleBtn.textContent = '👥 收起';
+                renderMemberList();
+            } else {
+                memberPanel.classList.remove('open');
+                memberToggleBtn.classList.remove('active');
+                memberToggleBtn.textContent = '👥 成员';
+            }
+        }
+
+        function startTimeRefresh() {
+            if (timeRefreshIntervalId) clearInterval(timeRefreshIntervalId);
+            timeRefreshIntervalId = setInterval(() => {
+                if (messages.length > 0) renderMessages();
+            }, 10000);
+        }
+
+        function bindEvents() {
+            sendButton.addEventListener('click', sendMyMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
+                    sendMyMessage(); }
+            });
+            settingsToggleBtn.addEventListener('click', toggleSettingsPanel);
+            styleToggleBtn.addEventListener('click', toggleStylePanel);
+            memberToggleBtn.addEventListener('click', toggleMemberPanel);
+            addReplyBtn.addEventListener('click', () => {
+                const text = customReplyInput.value;
+                if (text && text.trim() !== '') {
+                    if (addCustomReply(text)) {
+                        customReplyInput.value = '';
+                        customReplyInput.focus();
+                    } else {
+                        customReplyInput.style.borderColor = '#d4b896';
+                        setTimeout(() => customReplyInput.style.borderColor = '#e3dcd0', 600);
+                    }
+                }
+            });
+            customReplyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { e.preventDefault();
+                    addReplyBtn.click(); }
+            });
+            batchImportBtn.addEventListener('click', () => {
+                const raw = batchReplyTextarea.value;
+                if (!raw || raw.trim() === '') { showBatchFeedback('请输入短语内容', false); return; }
+                const res = batchAddCustomReplies(raw);
+                if (res.added > 0) {
+                    batchReplyTextarea.value = '';
+                    showBatchFeedback(`✓ 成功添加 ${res.added} 条${res.skipped ? `，跳过 ${res.skipped} 条重复` : ''}`,
+                        true);
+                } else showBatchFeedback(`全部 ${res.skipped} 条已存在，未新增`, false);
+            });
+            quotePreviewClose.addEventListener('click', hideQuotePreview);
+            statusLabel.addEventListener('click', clearAllChatHistory);
+            applyCssBtn.addEventListener('click', applyCurrentCssFromEditor);
+            resetCssBtn.addEventListener('click', resetToDefaultCss);
+            exampleCssBtn.addEventListener('click', insertExampleCss);
+
+            // ===== 速度控制事件 =====
+            bindSpeedEvents();
+
+            // ===== 新增：字体事件绑定 =====
+            fontFileBtn.addEventListener('click', () => {
+                fontFileInput.click();
+            });
+            fontFileInput.addEventListener('change', () => {
+                const file = fontFileInput.files[0];
+                if (file) {
+                    const name = fontNameInput.value.trim() || file.name.replace(/\.[^.]+$/, '');
+                    fontNameInput.value = name;
+                    setFontStatus('已选择: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + 'KB)', '');
+                }
+            });
+            uploadFontBtn.addEventListener('click', handleFontUpload);
+            applyFontUrlBtn.addEventListener('click', handleFontUrlLoad);
+            clearFontBtn.addEventListener('click', clearCustomFont);
+
+            // 快捷键：在输入框中按 Enter 触发上传或加载
+            fontNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (fontFileInput.files.length > 0) {
+                        uploadFontBtn.click();
+                    } else if (fontUrlInput.value.trim() !== '') {
+                        applyFontUrlBtn.click();
+                    }
+                }
+            });
+            fontUrlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyFontUrlBtn.click();
+                }
+            });
+        }
+
+        // ===== 色彩主题系统 =====
+        const THEMES = [{
+            id: 'misty-blue',
+            name: '雾霾蓝',
+            dotColor: '#e8edf2',
+            css: `
+                    body { background: #e8edf2; }
+                    .chat-container { background: #f5f8fa; border-color: rgba(0,0,0,0.02); }
+                    .chat-header { border-bottom-color: #dde3e8; }
+                    .peer-name { color: #2c3a4a; border-left-color: #9bb0c4; }
+                    .sub-line { color: #8a9aaa; }
+                    .bubble-left { background: #eef1f5; color: #2a3848; border-color: #dde3e8; }
+                    .bubble-right { background: #ffffff; color: #2a3848; border-color: #d4dce3; }
+                    .sender-name { color: #7a8fa0; }
+                    .message-time { color: #b0bfcc; }
+                    .quote-block { background: rgba(220,230,240,0.35); border-left-color: #9bb0c4; color: #5a6f80; }
+                    .quote-block .quote-sender { color: #7a8fa0; }
+                    .quote-btn { color: #b8c8d6; }
+                    .quote-preview-bar { background: #f2f6fa; border-color: #dde3e8; }
+                    .quote-preview-sender { color: #7a8fa0; }
+                    .quote-preview-text { color: #8a9aaa; }
+                    .quote-preview-close { background: #e0e6ec; color: #6a7f90; }
+                    .chat-input-area { background: #f5f8fa; border-top-color: #dde3e8; }
+                    .message-input { background: #ffffff; border-color: #d4dce3; color: #2a3848; }
+                    .send-btn { background: #e3e9ef; color: #3a4a5a; }
+                    .send-btn:hover { background: #d4dce3; color: #2a3848; }
+                    .settings-panel, .style-panel, .member-panel { background: #f5f8fa; border-bottom-color: #dde3e8; }
+                    .settings-panel-title, .style-panel-title, .member-panel-title { color: #7a8fa0; }
+                    .settings-panel-title .count-badge { background: #e0e6ec; color: #4a5a6a; }
+                    .settings-input { background: #ffffff; border-color: #d4dce3; color: #2a3848; }
+                    .settings-add-btn, .style-apply-btn { background: #e3e9ef; color: #3a4a5a; }
+                    .settings-add-btn:hover, .style-apply-btn:hover { background: #d4dce3; color: #2a3848; }
+                    .style-reset-btn { background: #eef2f6; border-color: #d4dce3; }
+                    .style-example-btn { background: #e8edf2; }
+                    .batch-label { color: #8a9aaa; }
+                    .batch-textarea, .css-textarea { background: #ffffff; border-color: #d4dce3; color: #2a3848; }
+                    .batch-hint, .style-hint { color: #b8c8d6; }
+                    .reply-tag { background: #eef1f5; border-color: #dde3e8; color: #3a4a5a; }
+                    .reply-tag .tag-delete { background: #d4dce3; color: #5a6f80; }
+                    .reply-tag .tag-delete:hover { background: #c0cedc; color: #f5f8fa; }
+                    .no-replies-hint { color: #b8c8d6; }
+                    .load-more-btn { background: #e3e9ef; color: #4a5a6a; }
+                    .load-more-btn:hover { background: #d4dce3; color: #2a3848; }
+                    .msg-count-tip { color: #b0bfcc; }
+                    .status { background: #e0e8ef; color: #4a6a7a; }
+                    .status:hover { background: #d4dce3; color: #3a5a6a; }
+                    .settings-toggle-btn, .style-toggle-btn, .member-toggle-btn { border-color: #c8d4de; color: #8a9aaa; }
+                    .settings-toggle-btn:hover, .style-toggle-btn:hover, .member-toggle-btn:hover { background: #e8edf2; border-color: #b0c0cc; color: #5a6f80; }
+                    .settings-toggle-btn.active, .style-toggle-btn.active, .member-toggle-btn.active { background: #dde3e8; border-color: #9bb0c4; color: #3a4a5a; }
+                    .theme-selector { border-top-color: #dde3e8; border-bottom-color: #dde3e8; }
+                    .theme-selector-label { color: #7a8fa0; }
+                    .theme-dot { border-color: #d4dce3; }
+                    .theme-btn.active .theme-dot { border-color: #8aa0b4; box-shadow: 0 0 0 3px rgba(155,176,196,0.25), 0 4px 14px rgba(0,0,0,0.06); }
+                    .theme-name { color: #8a9aaa; }
+                    .theme-btn.active .theme-name { color: #4a5a6a; }
+                    .theme-btn:hover .theme-name { color: #5a6f80; }
+                    .chat-messages { background: #f5f8fa; }
+                    .chat-messages::-webkit-scrollbar-track { background: #e8edf2; }
+                    .chat-messages::-webkit-scrollbar-thumb { background: #c8d4de; }
+                    .member-row { border-bottom-color: #dde3e8; }
+                    .member-label { color: #7a8fa0; }
+                    .member-input { background: #ffffff; border-color: #d4dce3; color: #2a3848; }
+                    .member-btn { background: #e3e9ef; color: #3a4a5a; }
+                    .member-btn:hover { background: #d4dce3; color: #2a3848; }
+                    .member-card-btn { background: #dce4ec; border-color: #c8d4de; }
+                    .member-card-btn:hover { background: #d0dce6; }
+                    .font-customizer { border-top-color: #dde3e8; border-bottom-color: #dde3e8; }
+                    .font-customizer-title { color: #7a8fa0; }
+                    .font-status { color: #8a9aaa; }
+                    .font-status.loaded { color: #7a9a7a; }
+                    .font-status.error { color: #c48a7a; }
+                    .font-preview { color: #8a9aaa; border-top-color: #dde3e8; }
+                    .font-file-btn { background: #e3e9ef; color: #3a4a5a; }
+                    .font-file-btn:hover { background: #d4dce3; color: #2a3848; }
+                    .speed-title { color: #7a8fa0; }
+                    .speed-row label { color: #7a8fa0; }
+                    .speed-row span { color: #7a8fa0; }
+                    .speed-control { border-top-color: #dde3e8; border-bottom-color: #dde3e8; }
+                `
+        }, {
+            id: 'sage-green',
+            name: '豆沙绿',
+            dotColor: '#ebefe5',
+            css: `
+                    body { background: #ebefe5; }
+                    .chat-container { background: #f5f8f0; border-color: rgba(0,0,0,0.02); }
+                    .chat-header { border-bottom-color: #dce3d4; }
+                    .peer-name { color: #2a3a2a; border-left-color: #a8b99a; }
+                    .sub-line { color: #8a9a7a; }
+                    .bubble-left { background: #eef2e6; color: #2a3828; border-color: #dce3d4; }
+                    .bubble-right { background: #ffffff; color: #2a3828; border-color: #d4dccc; }
+                    .sender-name { color: #7a8f6a; }
+                    .message-time { color: #b0c0a0; }
+                    .quote-block { background: rgba(220,230,210,0.35); border-left-color: #a8b99a; color: #5a6f4a; }
+                    .quote-block .quote-sender { color: #7a8f6a; }
+                    .quote-btn { color: #b8c8a8; }
+                    .quote-preview-bar { background: #f2f6ea; border-color: #dce3d4; }
+                    .quote-preview-sender { color: #7a8f6a; }
+                    .quote-preview-text { color: #8a9a7a; }
+                    .quote-preview-close { background: #e0e8d4; color: #5a6f4a; }
+                    .chat-input-area { background: #f5f8f0; border-top-color: #dce3d4; }
+                    .message-input { background: #ffffff; border-color: #d4dccc; color: #2a3828; }
+                    .send-btn { background: #e3ead4; color: #3a4a2a; }
+                    .send-btn:hover { background: #d4dccc; color: #2a3828; }
+                    .settings-panel, .style-panel, .member-panel { background: #f5f8f0; border-bottom-color: #dce3d4; }
+                    .settings-panel-title, .style-panel-title, .member-panel-title { color: #7a8f6a; }
+                    .settings-panel-title .count-badge { background: #e0e8d4; color: #4a5a3a; }
+                    .settings-input { background: #ffffff; border-color: #d4dccc; color: #2a3828; }
+                    .settings-add-btn, .style-apply-btn { background: #e3ead4; color: #3a4a2a; }
+                    .settings-add-btn:hover, .style-apply-btn:hover { background: #d4dccc; color: #2a3828; }
+                    .style-reset-btn { background: #eef2e6; border-color: #d4dccc; }
+                    .style-example-btn { background: #e8ede0; }
+                    .batch-label { color: #8a9a7a; }
+                    .batch-textarea, .css-textarea { background: #ffffff; border-color: #d4dccc; color: #2a3828; }
+                    .batch-hint, .style-hint { color: #b8c8a8; }
+                    .reply-tag { background: #eef2e6; border-color: #dce3d4; color: #3a4a2a; }
+                    .reply-tag .tag-delete { background: #d4dccc; color: #5a6f4a; }
+                    .reply-tag .tag-delete:hover { background: #c0ccb0; color: #f5f8f0; }
+                    .no-replies-hint { color: #b8c8a8; }
+                    .load-more-btn { background: #e3ead4; color: #4a5a3a; }
+                    .load-more-btn:hover { background: #d4dccc; color: #2a3828; }
+                    .msg-count-tip { color: #b0c0a0; }
+                    .status { background: #e0e8d4; color: #4a6a3a; }
+                    .status:hover { background: #d4dccc; color: #3a5a2a; }
+                    .settings-toggle-btn, .style-toggle-btn, .member-toggle-btn { border-color: #c8d4b8; color: #8a9a7a; }
+                    .settings-toggle-btn:hover, .style-toggle-btn:hover, .member-toggle-btn:hover { background: #e8ede0; border-color: #b0c0a0; color: #5a6f4a; }
+                    .settings-toggle-btn.active, .style-toggle-btn.active, .member-toggle-btn.active { background: #dce3d4; border-color: #a8b99a; color: #3a4a2a; }
+                    .theme-selector { border-top-color: #dce3d4; border-bottom-color: #dce3d4; }
+                    .theme-selector-label { color: #7a8f6a; }
+                    .theme-dot { border-color: #d4dccc; }
+                    .theme-btn.active .theme-dot { border-color: #8aa87a; box-shadow: 0 0 0 3px rgba(168,185,154,0.25), 0 4px 14px rgba(0,0,0,0.06); }
+                    .theme-name { color: #8a9a7a; }
+                    .theme-btn.active .theme-name { color: #4a5a3a; }
+                    .theme-btn:hover .theme-name { color: #5a6f4a; }
+                    .chat-messages { background: #f5f8f0; }
+                    .chat-messages::-webkit-scrollbar-track { background: #e8ede0; }
+                    .chat-messages::-webkit-scrollbar-thumb { background: #c8d4b8; }
+                    .member-row { border-bottom-color: #dce3d4; }
+                    .member-label { color: #7a8f6a; }
+                    .member-input { background: #ffffff; border-color: #d4dccc; color: #2a3828; }
+                    .member-btn { background: #e3ead4; color: #3a4a2a; }
+                    .member-btn:hover { background: #d4dccc; color: #2a3828; }
+                    .member-card-btn { background: #dce6d0; border-color: #c8d4b8; }
+                    .member-card-btn:hover { background: #d0ddc0; }
+                    .font-customizer { border-top-color: #dce3d4; border-bottom-color: #dce3d4; }
+                    .font-customizer-title { color: #7a8f6a; }
+                    .font-status { color: #8a9a7a; }
+                    .font-status.loaded { color: #7a9a6a; }
+                    .font-status.error { color: #c48a7a; }
+                    .font-preview { color: #8a9a7a; border-top-color: #dce3d4; }
+                    .font-file-btn { background: #e3ead4; color: #3a4a2a; }
+                    .font-file-btn:hover { background: #d4dccc; color: #2a3828; }
+                    .speed-title { color: #7a8f6a; }
+                    .speed-row label { color: #7a8f6a; }
+                    .speed-row span { color: #7a8f6a; }
+                    .speed-control { border-top-color: #dce3d4; border-bottom-color: #dce3d4; }
+                `
+        }, {
+            id: 'dusty-pink',
+            name: '灰粉紫',
+            dotColor: '#f0ecee',
+            css: `
+                    body { background: #f0ecee; }
+                    .chat-container { background: #f8f4f6; border-color: rgba(0,0,0,0.02); }
+                    .chat-header { border-bottom-color: #e4dde0; }
+                    .peer-name { color: #3a2e3a; border-left-color: #c4aab8; }
+                    .sub-line { color: #9a8a92; }
+                    .bubble-left { background: #f2eef0; color: #382c38; border-color: #e4dde0; }
+                    .bubble-right { background: #ffffff; color: #382c38; border-color: #dcd4d8; }
+                    .sender-name { color: #8a7a82; }
+                    .message-time { color: #c0b0b8; }
+                    .quote-block { background: rgba(225,215,220,0.35); border-left-color: #c4aab8; color: #6a5a62; }
+                    .quote-block .quote-sender { color: #8a7a82; }
+                    .quote-btn { color: #c8b8c0; }
+                    .quote-preview-bar { background: #f6f0f2; border-color: #e4dde0; }
+                    .quote-preview-sender { color: #8a7a82; }
+                    .quote-preview-text { color: #9a8a92; }
+                    .quote-preview-close { background: #e4dce0; color: #6a5a62; }
+                    .chat-input-area { background: #f8f4f6; border-top-color: #e4dde0; }
+                    .message-input { background: #ffffff; border-color: #dcd4d8; color: #382c38; }
+                    .send-btn { background: #e8dce2; color: #4a3a42; }
+                    .send-btn:hover { background: #dcd4d8; color: #382c38; }
+                    .settings-panel, .style-panel, .member-panel { background: #f8f4f6; border-bottom-color: #e4dde0; }
+                    .settings-panel-title, .style-panel-title, .member-panel-title { color: #8a7a82; }
+                    .settings-panel-title .count-badge { background: #e4dce0; color: #4a3a42; }
+                    .settings-input { background: #ffffff; border-color: #dcd4d8; color: #382c38; }
+                    .settings-add-btn, .style-apply-btn { background: #e8dce2; color: #4a3a42; }
+                    .settings-add-btn:hover, .style-apply-btn:hover { background: #dcd4d8; color: #382c38; }
+                    .style-reset-btn { background: #f2ecee; border-color: #dcd4d8; }
+                    .style-example-btn { background: #ece4e8; }
+                    .batch-label { color: #9a8a92; }
+                    .batch-textarea, .css-textarea { background: #ffffff; border-color: #dcd4d8; color: #382c38; }
+                    .batch-hint, .style-hint { color: #c8b8c0; }
+                    .reply-tag { background: #f2eef0; border-color: #e4dde0; color: #4a3a42; }
+                    .reply-tag .tag-delete { background: #dcd4d8; color: #6a5a62; }
+                    .reply-tag .tag-delete:hover { background: #ccc0c8; color: #f8f4f6; }
+                    .no-replies-hint { color: #c8b8c0; }
+                    .load-more-btn { background: #e8dce2; color: #4a3a42; }
+                    .load-more-btn:hover { background: #dcd4d8; color: #382c38; }
+                    .msg-count-tip { color: #c0b0b8; }
+                    .status { background: #e4dce0; color: #6a4a5a; }
+                    .status:hover { background: #dcd4d8; color: #5a3a4a; }
+                    .settings-toggle-btn, .style-toggle-btn, .member-toggle-btn { border-color: #d0c4c8; color: #9a8a92; }
+                    .settings-toggle-btn:hover, .style-toggle-btn:hover, .member-toggle-btn:hover { background: #ece4e8; border-color: #c0b0b8; color: #6a5a62; }
+                    .settings-toggle-btn.active, .style-toggle-btn.active, .member-toggle-btn.active { background: #e4dde0; border-color: #c4aab8; color: #4a3a42; }
+                    .theme-selector { border-top-color: #e4dde0; border-bottom-color: #e4dde0; }
+                    .theme-selector-label { color: #8a7a82; }
+                    .theme-dot { border-color: #dcd4d8; }
+                    .theme-btn.active .theme-dot { border-color: #b49aa8; box-shadow: 0 0 0 3px rgba(196,170,184,0.25), 0 4px 14px rgba(0,0,0,0.06); }
+                    .theme-name { color: #9a8a92; }
+                    .theme-btn.active .theme-name { color: #4a3a42; }
+                    .theme-btn:hover .theme-name { color: #6a5a62; }
+                    .chat-messages { background: #f8f4f6; }
+                    .chat-messages::-webkit-scrollbar-track { background: #ece4e8; }
+                    .chat-messages::-webkit-scrollbar-thumb { background: #d0c4c8; }
+                    .member-row { border-bottom-color: #e4dde0; }
+                    .member-label { color: #8a7a82; }
+                    .member-input { background: #ffffff; border-color: #dcd4d8; color: #382c38; }
+                    .member-btn { background: #e8dce2; color: #4a3a42; }
+                    .member-btn:hover { background: #dcd4d8; color: #382c38; }
+                    .member-card-btn { background: #e4d8de; border-color: #d0c4c8; }
+                    .member-card-btn:hover { background: #d8cad0; }
+                    .font-customizer { border-top-color: #e4dde0; border-bottom-color: #e4dde0; }
+                    .font-customizer-title { color: #8a7a82; }
+                    .font-status { color: #9a8a92; }
+                    .font-status.loaded { color: #7a8a6a; }
+                    .font-status.error { color: #c48a7a; }
+                    .font-preview { color: #9a8a92; border-top-color: #e4dde0; }
+                    .font-file-btn { background: #e8dce2; color: #4a3a42; }
+                    .font-file-btn:hover { background: #dcd4d8; color: #382c38; }
+                    .speed-title { color: #8a7a82; }
+                    .speed-row label { color: #8a7a82; }
+                    .speed-row span { color: #8a7a82; }
+                    .speed-control { border-top-color: #e4dde0; border-bottom-color: #e4dde0; }
+                `
+        },
+        // ===== 新增：夜间模式主题 =====
+        {
+            id: 'dark-night',
+            name: '暗夜',
+            dotColor: '#2a2a32',
+            css: `
+                    /* 暗夜主题 — 柔和深色背景，暖白文字 */
+                    body { background: #141418; }
+                    .chat-container { background: #1e1e24; border-color: rgba(255,255,255,0.03); }
+                    .chat-header { border-bottom-color: #35353a; }
+                    .peer-name { color: #e8e4dc; border-left-color: #5a5a6a; }
+                    .sub-line { color: #7a7a82; }
+                    .bubble-left { background: #303038; color: #e4e0d8; border-color: #3a3a42; }
+                    .bubble-right { background: #3a3a48; color: #ece8e0; border-color: #45454e; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+                    .sender-name { color: #9a96a0; }
+                    .message-time { color: #6a6a74; }
+                    .quote-block { background: rgba(60,60,72,0.45); border-left-color: #6a6a82; color: #b8b4ac; }
+                    .quote-block .quote-sender { color: #9a96a0; }
+                    .quote-btn { color: #6a6a7a; }
+                    .quote-btn:hover { color: #b0a8a0; background: rgba(120,120,140,0.15); }
+                    .quote-preview-bar { background: #2a2a32; border-color: #3a3a44; }
+                    .quote-preview-sender { color: #9a96a0; }
+                    .quote-preview-text { color: #8a8690; }
+                    .quote-preview-close { background: #3a3a48; color: #8a8690; }
+                    .quote-preview-close:hover { background: #4a4a58; color: #d0ccc4; }
+                    .chat-input-area { background: #1e1e24; border-top-color: #35353a; }
+                    .message-input { background: #2a2a32; border-color: #3a3a44; color: #e8e4dc; }
+                    .message-input:focus { border-color: #5a5a6e; box-shadow: 0 0 0 2px rgba(90,90,110,0.25); }
+                    .message-input::placeholder { color: #6a6a76; }
+                    .send-btn { background: #3a3a48; color: #d0ccc4; }
+                    .send-btn:hover { background: #4a4a58; color: #f0ece4; }
+                    .settings-panel, .style-panel, .member-panel { background: #1e1e24; border-bottom-color: #35353a; }
+                    .settings-panel-title, .style-panel-title, .member-panel-title { color: #9a96a0; }
+                    .settings-panel-title .count-badge { background: #3a3a48; color: #b8b4ac; }
+                    .settings-input { background: #2a2a32; border-color: #3a3a44; color: #e8e4dc; }
+                    .settings-input:focus { border-color: #5a5a6e; box-shadow: 0 0 0 2px rgba(90,90,110,0.2); }
+                    .settings-input::placeholder { color: #6a6a76; }
+                    .settings-add-btn, .style-apply-btn { background: #3a3a48; color: #d0ccc4; }
+                    .settings-add-btn:hover, .style-apply-btn:hover { background: #4a4a58; color: #f0ece4; }
+                    .style-reset-btn { background: #2a2a34; border-color: #3a3a44; color: #9a9690; }
+                    .style-reset-btn:hover { background: #3a3a48; color: #d0ccc4; }
+                    .style-example-btn { background: #32323e; color: #b0aca4; }
+                    .style-example-btn:hover { background: #424250; color: #e0dcd4; }
+                    .batch-label { color: #7a7a84; }
+                    .batch-textarea, .css-textarea { background: #2a2a32; border-color: #3a3a44; color: #e0dcd4; }
+                    .batch-textarea:focus, .css-textarea:focus { border-color: #5a5a6e; box-shadow: 0 0 0 2px rgba(90,90,110,0.2); }
+                    .batch-textarea::placeholder, .css-textarea::placeholder { color: #6a6a76; }
+                    .batch-hint, .style-hint { color: #6a6a78; }
+                    .reply-tag { background: #2a2a34; border-color: #3a3a44; color: #d0ccc4; }
+                    .reply-tag .tag-delete { background: #3a3a48; color: #8a8690; }
+                    .reply-tag .tag-delete:hover { background: #4a4a5a; color: #e0dcd4; }
+                    .no-replies-hint { color: #6a6a78; }
+                    .load-more-btn { background: #3a3a48; color: #b8b4ac; }
+                    .load-more-btn:hover { background: #4a4a58; color: #e8e4dc; }
+                    .msg-count-tip { color: #6a6a78; }
+                    .status { background: #2a2a38; color: #8a8a96; }
+                    .status:hover { background: #3a3a4a; color: #b0b0ba; }
+                    .settings-toggle-btn, .style-toggle-btn, .member-toggle-btn { border-color: #3a3a48; color: #8a8690; }
+                    .settings-toggle-btn:hover, .style-toggle-btn:hover, .member-toggle-btn:hover { background: #2a2a36; border-color: #5a5a6a; color: #c8c4bc; }
+                    .settings-toggle-btn.active, .style-toggle-btn.active, .member-toggle-btn.active { background: #3a3a4a; border-color: #6a6a7e; color: #e0dcd4; }
+                    .theme-selector { border-top-color: #35353a; border-bottom-color: #35353a; }
+                    .theme-selector-label { color: #9a96a0; }
+                    .theme-dot { border-color: #3a3a48; }
+                    .theme-btn.active .theme-dot { border-color: #8a8aa0; box-shadow: 0 0 0 3px rgba(100,100,130,0.3), 0 4px 14px rgba(0,0,0,0.2); }
+                    .theme-name { color: #7a7a84; }
+                    .theme-btn.active .theme-name { color: #c8c4bc; }
+                    .theme-btn:hover .theme-name { color: #b0aca4; }
+                    .chat-messages { background: #1a1a20; }
+                    .chat-messages::-webkit-scrollbar-track { background: #26262c; }
+                    .chat-messages::-webkit-scrollbar-thumb { background: #3a3a48; }
+                    .member-row { border-bottom-color: #2e2e38; }
+                    .member-label { color: #9a96a0; }
+                    .member-input { background: #2a2a32; border-color: #3a3a44; color: #e8e4dc; }
+                    .member-input:focus { border-color: #5a5a6e; box-shadow: 0 0 0 2px rgba(90,90,110,0.2); }
+                    .member-input::placeholder { color: #6a6a76; }
+                    .member-btn { background: #3a3a48; color: #c8c4bc; }
+                    .member-btn:hover { background: #4a4a58; color: #ece8e0; }
+                    .member-card-btn { background: #323240; border-color: #3a3a4a; }
+                    .member-card-btn:hover { background: #424252; }
+                    .font-customizer { border-top-color: #35353a; border-bottom-color: #35353a; }
+                    .font-customizer-title { color: #9a96a0; }
+                    .font-status { color: #7a7a84; }
+                    .font-status.loaded { color: #8aaa8a; }
+                    .font-status.error { color: #c48a7a; }
+                    .font-preview { color: #8a8a96; border-top-color: #35353a; }
+                    .font-file-btn { background: #3a3a48; color: #c8c4bc; }
+                    .font-file-btn:hover { background: #4a4a58; color: #ece8e0; }
+                    .font-preview .preview-label { color: #5a5a6a; }
+                    .speed-title { color: #9a96a0; }
+                    .speed-row label { color: #9a96a0; }
+                    .speed-row span { color: #9a96a0; }
+                    .speed-control { border-top-color: #35353a; border-bottom-color: #35353a; }
+                `
+        }
+        ];
+
+        let currentThemeId = 'misty-blue';
+        let themeStyleElement = null;
+
+        function ensureThemeStyleElement() {
+            if (!themeStyleElement) {
+                themeStyleElement = document.getElementById('dynamic-theme-styles');
+                if (!themeStyleElement) {
+                    themeStyleElement = document.createElement('style');
+                    themeStyleElement.id = 'dynamic-theme-styles';
+                    document.head.appendChild(themeStyleElement);
+                }
+            }
+            return themeStyleElement;
+        }
+
+        function applyTheme(themeId) {
+            const theme = THEMES.find(t => t.id === themeId);
+            if (!theme) return;
+            currentThemeId = themeId;
+            const styleTag = ensureThemeStyleElement();
+            styleTag.textContent = theme.css;
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === themeId);
+            });
+            try { localStorage.setItem(STORAGE_THEME_KEY, themeId); } catch (e) {}
+            document.body.setAttribute('data-theme', themeId);
+            // 重新应用自定义CSS（覆盖主题）
+            const savedCustom = localStorage.getItem(STORAGE_CUSTOM_CSS_KEY);
+            if (savedCustom && savedCustom.trim() !== '') {
+                applyCustomCss(savedCustom);
+            }
+        }
+
+        function loadThemeFromStorage() {
+            const saved = localStorage.getItem(STORAGE_THEME_KEY);
+            if (saved && THEMES.some(t => t.id === saved)) {
+                currentThemeId = saved;
+            } else {
+                currentThemeId = 'misty-blue';
+            }
+            applyTheme(currentThemeId);
+        }
+
+        function renderThemeButtons() {
+            if (!themeOptions) return;
+            themeOptions.innerHTML = '';
+            THEMES.forEach(theme => {
+                const btn = document.createElement('button');
+                btn.className = 'theme-btn' + (theme.id === currentThemeId ? ' active' : '');
+                btn.dataset.theme = theme.id;
+                btn.setAttribute('title', theme.name + ' · 莫兰迪色');
+                btn.innerHTML = `
+                        <span class="theme-dot" style="background: ${theme.dotColor};"></span>
+                        <span class="theme-name">${theme.name}</span>
+                    `;
+                btn.addEventListener('click', () => {
+                    applyTheme(theme.id);
+                    showToast('✦ 切换至「' + theme.name + '」主题', true);
+                });
+                themeOptions.appendChild(btn);
+            });
+        }
+
+        // ===== 初始化 =====
+        async function init() {
+            loadMemberNames();
+            loadCustomReplies();
+            renderRepliesTags();
+            loadCustomCssFromStorage();
+            loadThemeFromStorage();
+            renderThemeButtons();
+            loadSpeedSettings(); // 加载速度设置
+            updateSpeedLabels();
+
+            // 恢复字体
+            await restoreFontFromStorage();
+
+            const hasSaved = loadMessages();
+            if (!hasSaved || messages.length === 0) initExampleMessages();
+            else {
+                resetRenderOffsetToLatest();
+                renderMessages();
+                scrollToBottom();
+            }
+            bindEvents();
+            startTimeRefresh();
+            setTimeout(() => messageInput.focus(), 120);
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (timeRefreshIntervalId) clearInterval(timeRefreshIntervalId);
+            pendingAutoReplies.forEach(clearTimeout);
+            saveMessages();
+            saveMemberNames();
+            saveSpeedSettings();
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (timeRefreshIntervalId) clearInterval(timeRefreshIntervalId);
+                saveMessages();
+            } else {
+                if (!timeRefreshIntervalId) startTimeRefresh();
+                renderMessages();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
